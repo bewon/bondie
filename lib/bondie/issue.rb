@@ -1,3 +1,5 @@
+require 'date'
+
 module Bondie
   class Issue
 
