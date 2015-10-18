@@ -3,11 +3,10 @@ module Bondie
 
     DEFAULT_APPROXIMATION_ERROR = 0.001
 
-    def initialize(coupon: nil, maturity_date: nil, coupon_frequency: nil, approximation_error: DEFAULT_APPROXIMATION_ERROR)
+    def initialize(coupon: nil, maturity_date: nil, coupon_frequency: nil)
       @coupon               = coupon
       @maturity_date        = maturity_date
       @coupon_frequency     = coupon_frequency
-      @approximation_error  = approximation_error
     end
 
     def price(ytm, date, fees: 0)
@@ -24,9 +23,9 @@ module Bondie
       payments.sort
     end
 
-    def ytm(date, price: 100, fees: 0)
+    def ytm(date, price: 100, fees: 0, approximation_error: DEFAULT_APPROXIMATION_ERROR)
       ytm_down, ytm_up = ytm_limits(price, date, fees: fees)
-      approximate_ytm(ytm_down, ytm_up, price, date, fees: fees)
+      approximate_ytm(ytm_down, ytm_up, price, date, fees: fees, approximation_error: approximation_error)
     end
 
 
@@ -37,12 +36,12 @@ module Bondie
     end
 
 
-    def approximate_ytm(ytm_down, ytm_up, price, date, fees: 0)
+    def approximate_ytm(ytm_down, ytm_up, price, date, fees: 0, approximation_error: DEFAULT_APPROXIMATION_ERROR)
       approx_ytm = (ytm_up + ytm_down) / 2.0
-      return approx_ytm if ((ytm_up - approx_ytm)/approx_ytm).abs <= @approximation_error
+      return approx_ytm if ((ytm_up - approx_ytm)/approx_ytm).abs <= approximation_error
       p = price(approx_ytm, date, fees: fees)
       ytm_down, ytm_up = p < price ? [ytm_down, approx_ytm] : [approx_ytm, ytm_up]
-      approximate_ytm(ytm_down, ytm_up, price, date, fees: fees)
+      approximate_ytm(ytm_down, ytm_up, price, date, fees: fees, approximation_error: approximation_error)
     end
 
     def ytm_limits(price, date, fees: 0)
